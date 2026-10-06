@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}RestaurantDB{% endblock %} | Restaurant Reservation & Food Service</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand-wrap">
+    <a class="brand" href="/">Restaurant<span>DB</span></a>
+    <div class="brand-sub">Table Reservation & Food Service Management</div>
+  </div>
+  <nav>
+    <a href="/">Dashboard</a><a href="/tables">Tables</a><a href="/customers">Customers</a>
+    <a href="/reservations">Reservations</a><a href="/menu">Menu</a><a href="/orders">Orders</a>
+    <a href="/kitchen">Kitchen</a><a href="/billing">Billing</a><a href="/reports">Reports</a>
+    <a href="/database-validation" class="nav-outline">DB Validation</a>
+  </nav>
+</header>
+<main class="container">
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% for category,message in messages %}<div class="flash {{category}}"><b>{{ '✓' if category=='success' else '!' }}</b>{{message}}</div>{% endfor %}
+{% endwith %}
+{% block content %}{% endblock %}
+</main>
+<footer>DBMS PBL • Restaurant Table Reservation and Food Service Management System</footer>
+</body>
+</html>
