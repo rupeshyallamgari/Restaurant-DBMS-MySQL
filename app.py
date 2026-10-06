@@ -1,6 +1,13 @@
+import os
+
 from flask import Flask, render_template, request, redirect, url_for, flash
 import mysql.connector
 from mysql.connector import Error
+
+
+# ============================================================
+# FLASK APPLICATION
+# ============================================================
 
 app = Flask(
     __name__,
@@ -8,19 +15,37 @@ app = Flask(
     static_folder="app/static"
 )
 
-app.secret_key = "restaurant-dbms-pbl-secret"
-
-DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "Rupesh0612",
-    "database": "restaurant_db",
-    "port": 3306
-}
+app.secret_key = os.getenv(
+    "SECRET_KEY",
+    "restaurant-dbms-pbl-secret"
+)
 
 
 # ============================================================
-# DATABASE CONNECTION
+# MYSQL DATABASE CONFIGURATION
+# ============================================================
+# Local computer:
+#   host = localhost
+#
+# Railway:
+#   Railway automatically provides:
+#   MYSQLHOST
+#   MYSQLPORT
+#   MYSQLUSER
+#   MYSQLPASSWORD
+#   MYSQLDATABASE
+# ============================================================
+
+DB_CONFIG = {
+    "host": os.getenv("MYSQLHOST", "localhost"),
+    "user": os.getenv("MYSQLUSER", "root"),
+    "password": os.getenv("MYSQLPASSWORD", "Rupesh0612"),
+    "database": os.getenv("MYSQLDATABASE", "restaurant_db"),
+    "port": int(os.getenv("MYSQLPORT", "3306"))
+}
+
+# ============================================================
+# DATABASE FUNCTIONS
 # ============================================================
 
 def get_db():
@@ -29,28 +54,37 @@ def get_db():
 
 def scalar(conn, sql, params=()):
     cur = conn.cursor()
+
     try:
         cur.execute(sql, params)
         row = cur.fetchone()
+
         return row[0] if row else 0
+
     finally:
         cur.close()
 
 
 def fetchall(conn, sql, params=()):
     cur = conn.cursor(dictionary=True)
+
     try:
         cur.execute(sql, params)
+
         return cur.fetchall()
+
     finally:
         cur.close()
 
 
 def fetchone(conn, sql, params=()):
     cur = conn.cursor(dictionary=True)
+
     try:
         cur.execute(sql, params)
+
         return cur.fetchone()
+
     finally:
         cur.close()
 
@@ -84,8 +118,11 @@ def dashboard():
 
             "available": scalar(
                 conn,
-                "SELECT COUNT(*) FROM restaurant_table "
-                "WHERE status='Available'"
+                """
+                SELECT COUNT(*)
+                FROM restaurant_table
+                WHERE status='Available'
+                """
             ),
 
             "reservations": scalar(
@@ -136,12 +173,17 @@ def dashboard():
                 r.reservation_time,
                 r.guest_count,
                 r.status
+
             FROM reservation r
+
             JOIN customer c
-                ON r.customer_id=c.customer_id
+                ON r.customer_id = c.customer_id
+
             JOIN restaurant_table t
-                ON r.table_id=t.table_id
+                ON r.table_id = t.table_id
+
             ORDER BY r.reservation_id DESC
+
             LIMIT 8
             """
         )
@@ -157,7 +199,7 @@ def dashboard():
 
 
 # ============================================================
-# RESTAURANT TABLES
+# TABLE MANAGEMENT
 # ============================================================
 
 @app.route("/tables", methods=["GET", "POST"])
@@ -178,7 +220,13 @@ def tables():
                 cur.execute(
                     """
                     INSERT INTO restaurant_table
-                    (table_number, area_id, capacity, status)
+                    (
+                        table_number,
+                        area_id,
+                        capacity,
+                        status
+                    )
+
                     VALUES (%s,%s,%s,%s)
                     """,
                     (
@@ -218,9 +266,12 @@ def tables():
             SELECT
                 t.*,
                 a.area_name
+
             FROM restaurant_table t
+
             JOIN dining_area a
-                ON t.area_id=a.area_id
+                ON t.area_id = a.area_id
+
             ORDER BY t.table_number
             """
         )
@@ -245,7 +296,7 @@ def tables():
 
 
 # ============================================================
-# CUSTOMERS
+# CUSTOMER MANAGEMENT
 # ============================================================
 
 @app.route("/customers", methods=["GET", "POST"])
@@ -266,7 +317,13 @@ def customers():
                 cur.execute(
                     """
                     INSERT INTO customer
-                    (full_name, phone, email, address)
+                    (
+                        full_name,
+                        phone,
+                        email,
+                        address
+                    )
+
                     VALUES (%s,%s,%s,%s)
                     """,
                     (
@@ -367,10 +424,13 @@ def reservations():
                 """
                 SELECT COUNT(*)
                 FROM reservation
+
                 WHERE table_id=%s
                 AND reservation_date=%s
                 AND reservation_time=%s
-                AND status IN ('Pending','Confirmed')
+
+                AND status IN
+                ('Pending','Confirmed')
                 """,
                 (
                     table_id,
@@ -405,6 +465,7 @@ def reservations():
                         guest_count,
                         status
                     )
+
                     VALUES (%s,%s,%s,%s,%s,%s)
                     """,
                     (
@@ -422,7 +483,9 @@ def reservations():
                     cur.execute(
                         """
                         UPDATE restaurant_table
+
                         SET status='Reserved'
+
                         WHERE table_id=%s
                         """,
                         (table_id,)
@@ -458,11 +521,15 @@ def reservations():
                 r.*,
                 c.full_name,
                 t.table_number
+
             FROM reservation r
+
             JOIN customer c
                 ON r.customer_id=c.customer_id
+
             JOIN restaurant_table t
                 ON r.table_id=t.table_id
+
             ORDER BY r.reservation_id DESC
             """
         )
@@ -481,7 +548,9 @@ def reservations():
             """
             SELECT *
             FROM restaurant_table
+
             WHERE status <> 'Maintenance'
+
             ORDER BY table_number
             """
         )
@@ -498,7 +567,7 @@ def reservations():
 
 
 # ============================================================
-# MENU
+# MENU MANAGEMENT
 # ============================================================
 
 @app.route("/menu", methods=["GET", "POST"])
@@ -526,6 +595,7 @@ def menu():
                         price,
                         availability
                     )
+
                     VALUES (%s,%s,%s,%s,%s)
                     """,
                     (
@@ -566,10 +636,15 @@ def menu():
             SELECT
                 m.*,
                 c.category_name
+
             FROM menu_item m
+
             JOIN menu_category c
                 ON m.category_id=c.category_id
-            ORDER BY c.category_name,m.item_name
+
+            ORDER BY
+                c.category_name,
+                m.item_name
             """
         )
 
@@ -605,17 +680,37 @@ def orders():
 
         if request.method == "POST":
 
-            customer_id = request.form.get("customer_id") or None
-            table_id = int(request.form["table_id"])
-            waiter_id = request.form.get("waiter_id") or None
-            item_id = int(request.form["item_id"])
-            qty = int(request.form["quantity"])
+            customer_id = (
+                request.form.get("customer_id")
+                or None
+            )
+
+            table_id = int(
+                request.form["table_id"]
+            )
+
+            waiter_id = (
+                request.form.get("waiter_id")
+                or None
+            )
+
+            item_id = int(
+                request.form["item_id"]
+            )
+
+            qty = int(
+                request.form["quantity"]
+            )
 
             item = fetchone(
                 conn,
                 """
-                SELECT price, availability
+                SELECT
+                    price,
+                    availability
+
                 FROM menu_item
+
                 WHERE item_id=%s
                 """,
                 (item_id,)
@@ -663,7 +758,9 @@ def orders():
                         waiter_id,
                         status
                     )
-                    VALUES (%s,%s,%s,'Placed')
+
+                    VALUES
+                    (%s,%s,%s,'Placed')
                     """,
                     (
                         customer_id,
@@ -683,7 +780,9 @@ def orders():
                         quantity,
                         unit_price
                     )
-                    VALUES (%s,%s,%s,%s)
+
+                    VALUES
+                    (%s,%s,%s,%s)
                     """,
                     (
                         order_id,
@@ -696,8 +795,13 @@ def orders():
                 cur.execute(
                     """
                     INSERT INTO kitchen_ticket
-                    (order_id,status)
-                    VALUES (%s,'Pending')
+                    (
+                        order_id,
+                        status
+                    )
+
+                    VALUES
+                    (%s,'Pending')
                     """,
                     (order_id,)
                 )
@@ -705,7 +809,9 @@ def orders():
                 cur.execute(
                     """
                     UPDATE restaurant_table
+
                     SET status='Occupied'
+
                     WHERE table_id=%s
                     """,
                     (table_id,)
@@ -742,24 +848,35 @@ def orders():
                 c.full_name,
                 t.table_number,
                 w.waiter_name,
+
                 COALESCE(
-                    SUM(oi.quantity * oi.unit_price),
+                    SUM(
+                        oi.quantity *
+                        oi.unit_price
+                    ),
                     0
                 ) AS subtotal
+
             FROM food_order o
+
             LEFT JOIN customer c
                 ON o.customer_id=c.customer_id
+
             JOIN restaurant_table t
                 ON o.table_id=t.table_id
+
             LEFT JOIN waiter w
                 ON o.waiter_id=w.waiter_id
+
             LEFT JOIN order_item oi
                 ON o.order_id=oi.order_id
+
             GROUP BY
                 o.order_id,
                 c.full_name,
                 t.table_number,
                 w.waiter_name
+
             ORDER BY o.order_id DESC
             """
         )
@@ -778,7 +895,9 @@ def orders():
             """
             SELECT *
             FROM restaurant_table
+
             WHERE status <> 'Maintenance'
+
             ORDER BY table_number
             """
         )
@@ -788,7 +907,9 @@ def orders():
             """
             SELECT *
             FROM waiter
+
             WHERE status='Active'
+
             ORDER BY waiter_name
             """
         )
@@ -798,7 +919,9 @@ def orders():
             """
             SELECT *
             FROM menu_item
+
             WHERE availability='Available'
+
             ORDER BY item_name
             """
         )
@@ -835,11 +958,15 @@ def kitchen():
                 o.table_id,
                 t.table_number,
                 o.status AS order_status
+
             FROM kitchen_ticket k
+
             JOIN food_order o
                 ON k.order_id=o.order_id
+
             JOIN restaurant_table t
                 ON o.table_id=t.table_id
+
             ORDER BY k.ticket_id DESC
             """
         )
@@ -867,7 +994,9 @@ def update_kitchen(ticket_id):
         cur.execute(
             """
             UPDATE kitchen_ticket
+
             SET status=%s
+
             WHERE ticket_id=%s
             """,
             (
@@ -879,7 +1008,9 @@ def update_kitchen(ticket_id):
         cur.execute(
             """
             SELECT order_id
+
             FROM kitchen_ticket
+
             WHERE ticket_id=%s
             """,
             (ticket_id,)
@@ -892,7 +1023,9 @@ def update_kitchen(ticket_id):
             cur.execute(
                 """
                 UPDATE food_order
+
                 SET status=%s
+
                 WHERE order_id=%s
                 """,
                 (
@@ -939,24 +1072,37 @@ def billing():
 
         if request.method == "POST":
 
-            order_id = int(request.form["order_id"])
-            discount_id = request.form.get("discount_id") or None
+            order_id = int(
+                request.form["order_id"]
+            )
+
+            discount_id = (
+                request.form.get("discount_id")
+                or None
+            )
 
             order = fetchone(
                 conn,
                 """
                 SELECT
                     COALESCE(
-                        SUM(quantity * unit_price),
+                        SUM(
+                            quantity *
+                            unit_price
+                        ),
                         0
                     ) AS subtotal
+
                 FROM order_item
+
                 WHERE order_id=%s
                 """,
                 (order_id,)
             )
 
-            subtotal = float(order["subtotal"])
+            subtotal = float(
+                order["subtotal"]
+            )
 
             discount_amount = 0.0
 
@@ -966,7 +1112,9 @@ def billing():
                     conn,
                     """
                     SELECT discount_percent
+
                     FROM discount
+
                     WHERE discount_id=%s
                     AND active=1
                     """,
@@ -977,11 +1125,18 @@ def billing():
 
                     discount_amount = (
                         subtotal
-                        * float(discount["discount_percent"])
+                        * float(
+                            discount[
+                                "discount_percent"
+                            ]
+                        )
                         / 100
                     )
 
-            taxable = subtotal - discount_amount
+            taxable = (
+                subtotal -
+                discount_amount
+            )
 
             tax = round(
                 taxable * 0.05,
@@ -1011,7 +1166,9 @@ def billing():
                         status,
                         discount_id
                     )
-                    VALUES (%s,%s,%s,%s,%s,'Open',%s)
+
+                    VALUES
+                    (%s,%s,%s,%s,%s,'Open',%s)
                     """,
                     (
                         order_id,
@@ -1057,7 +1214,9 @@ def billing():
                 COALESCE(
                     (
                         SELECT SUM(p.amount)
+
                         FROM payment p
+
                         WHERE p.bill_id=b.bill_id
                         AND p.status='Successful'
                     ),
@@ -1093,7 +1252,9 @@ def billing():
             AND NOT EXISTS
             (
                 SELECT 1
+
                 FROM bill b
+
                 WHERE b.order_id=o.order_id
             )
 
@@ -1106,7 +1267,9 @@ def billing():
             """
             SELECT *
             FROM discount
+
             WHERE active=1
+
             ORDER BY discount_code
             """
         )
@@ -1133,7 +1296,9 @@ def payment(bill_id):
         request.form["amount"]
     )
 
-    method = request.form["payment_method"]
+    method = request.form[
+        "payment_method"
+    ]
 
     conn = get_db()
 
@@ -1148,7 +1313,9 @@ def payment(bill_id):
                 COALESCE(
                     (
                         SELECT SUM(p.amount)
+
                         FROM payment p
+
                         WHERE p.bill_id=b.bill_id
                         AND p.status='Successful'
                     ),
@@ -1156,6 +1323,7 @@ def payment(bill_id):
                 ) AS paid
 
             FROM bill b
+
             WHERE b.bill_id=%s
             """,
             (bill_id,)
@@ -1170,7 +1338,8 @@ def payment(bill_id):
 
         elif (
             amount <= 0
-            or amount >
+            or
+            amount >
             float(
                 bill["total_amount"]
                 - bill["paid"]
@@ -1195,7 +1364,9 @@ def payment(bill_id):
                     payment_method,
                     status
                 )
-                VALUES (%s,%s,%s,'Successful')
+
+                VALUES
+                (%s,%s,%s,'Successful')
                 """,
                 (
                     bill_id,
@@ -1211,17 +1382,24 @@ def payment(bill_id):
 
             if (
                 new_paid
-                >= float(bill["total_amount"])
-                - 0.001
+                >=
+                float(
+                    bill["total_amount"]
+                ) - 0.001
             ):
+
                 status = "Paid"
+
             else:
+
                 status = "Partially Paid"
 
             cur.execute(
                 """
                 UPDATE bill
+
                 SET status=%s
+
                 WHERE bill_id=%s
                 """,
                 (
@@ -1271,9 +1449,14 @@ def reports():
             """
             SELECT
                 mi.item_name,
-                SUM(oi.quantity) AS quantity_sold,
+
                 SUM(
-                    oi.quantity * oi.unit_price
+                    oi.quantity
+                ) AS quantity_sold,
+
+                SUM(
+                    oi.quantity *
+                    oi.unit_price
                 ) AS sales_value
 
             FROM order_item oi
@@ -1299,7 +1482,11 @@ def reports():
             """
             SELECT
                 w.waiter_name,
-                COUNT(o.order_id) AS orders_handled,
+
+                COUNT(
+                    o.order_id
+                ) AS orders_handled,
+
                 COALESCE(
                     SUM(b.total_amount),
                     0
@@ -1324,8 +1511,14 @@ def reports():
         revenue = scalar(
             conn,
             """
-            SELECT COALESCE(SUM(amount),0)
+            SELECT
+                COALESCE(
+                    SUM(amount),
+                    0
+                )
+
             FROM payment
+
             WHERE status='Successful'
             """
         )
@@ -1371,11 +1564,14 @@ def validation():
         checks.append(
             (
                 "Invalid table capacities",
+
                 scalar(
                     conn,
                     """
                     SELECT COUNT(*)
+
                     FROM restaurant_table
+
                     WHERE capacity<=0
                     """
                 )
@@ -1385,11 +1581,14 @@ def validation():
         checks.append(
             (
                 "Invalid menu prices",
+
                 scalar(
                     conn,
                     """
                     SELECT COUNT(*)
+
                     FROM menu_item
+
                     WHERE price<=0
                     """
                 )
@@ -1399,11 +1598,14 @@ def validation():
         checks.append(
             (
                 "Invalid order quantities",
+
                 scalar(
                     conn,
                     """
                     SELECT COUNT(*)
+
                     FROM order_item
+
                     WHERE quantity<=0
                     """
                 )
@@ -1413,11 +1615,14 @@ def validation():
         checks.append(
             (
                 "Negative bills",
+
                 scalar(
                     conn,
                     """
                     SELECT COUNT(*)
+
                     FROM bill
+
                     WHERE total_amount<0
                     """
                 )
@@ -1427,10 +1632,12 @@ def validation():
         checks.append(
             (
                 "Payments above bill totals",
+
                 scalar(
                     conn,
                     """
                     SELECT COUNT(*)
+
                     FROM
                     (
                         SELECT
@@ -1439,8 +1646,11 @@ def validation():
                         FROM bill b
 
                         LEFT JOIN payment p
-                            ON b.bill_id=p.bill_id
-                            AND p.status='Successful'
+
+                            ON
+                            b.bill_id=p.bill_id
+                            AND
+                            p.status='Successful'
 
                         GROUP BY
                             b.bill_id,
@@ -1452,7 +1662,8 @@ def validation():
                                 0
                             )
                             >
-                            b.total_amount + 0.001
+                            b.total_amount
+                            + 0.001
 
                     ) AS x
                     """
@@ -1466,12 +1677,11 @@ def validation():
         )
 
     finally:
-
         close_db(conn)
 
 
 # ============================================================
-# START APPLICATION
+# APPLICATION START
 # ============================================================
 
 if __name__ == "__main__":
@@ -1479,24 +1689,42 @@ if __name__ == "__main__":
     print("=" * 60)
     print(" RESTAURANT DBMS - MYSQL VERSION")
     print("=" * 60)
-    print("Database: restaurant_db")
-    print("Server: http://127.0.0.1:5000")
+
+    print(
+        "Database:",
+        DB_CONFIG["database"]
+    )
+
+    print(
+        "Server: http://127.0.0.1:5000"
+    )
+
     print("=" * 60)
 
     try:
 
         test = get_db()
 
-        print("MySQL connection: SUCCESS")
+        print(
+            "MySQL connection: SUCCESS"
+        )
 
         close_db(test)
 
     except Error as e:
 
-        print("MySQL connection FAILED:", e)
+        print(
+            "MySQL connection FAILED:",
+            e
+        )
 
     app.run(
-        host="127.0.0.1",
-        port=5000,
+        host="0.0.0.0",
+        port=int(
+            os.getenv(
+                "PORT",
+                "5000"
+            )
+        ),
         debug=False
     )

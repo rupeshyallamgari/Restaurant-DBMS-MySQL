@@ -1,0 +1,12 @@
+{% extends 'base.html' %}{% block title %}Orders{% endblock %}
+{% block content %}<div class="page-head"><div><p class="eyebrow">FOOD SERVICE</p><h1>Food Orders</h1></div></div>
+<section class="panel"><h2>Create Food Order</h2><form method="post" class="form-grid">
+<select name="customer_id"><option value="">Walk-in customer</option>{% for c in customers %}<option value="{{c.customer_id}}">{{c.full_name}}</option>{% endfor %}</select>
+<select name="table_id" required>{% for t in tables %}<option value="{{t.table_id}}">{{t.table_number}} — {{t.capacity}} seats</option>{% endfor %}</select>
+<select name="waiter_id"><option value="">Select waiter</option>{% for w in waiters %}<option value="{{w.waiter_id}}">{{w.waiter_name}}</option>{% endfor %}</select>
+<select name="item_id" required>{% for i in items %}<option value="{{i.item_id}}">{{i.item_name}} — ₹{{i.price}}</option>{% endfor %}</select>
+<input type="number" name="quantity" min="1" value="1" required><button class="button">Place Order</button>
+</form></section>
+<section class="panel"><h2>Orders</h2><div class="table-wrap"><table><tr><th>Order</th><th>Customer</th><th>Table</th><th>Waiter</th><th>Subtotal</th><th>Status</th></tr>
+{% for r in rows %}<tr><td>#{{r.order_id}}</td><td>{{r.full_name or 'Walk-in'}}</td><td>{{r.table_number}}</td><td>{{r.waiter_name or '-'}}</td><td>₹{{'%.2f'|format(r.subtotal)}}</td><td><span class="status">{{r.status}}</span></td></tr>{% endfor %}
+</table></div></section>{% endblock %}
