@@ -1,0 +1,12 @@
+{% extends 'base.html' %}{% block title %}Reservations{% endblock %}
+{% block content %}<div class="page-head"><div><p class="eyebrow">RESERVATION MODULE</p><h1>Table Reservations</h1></div></div>
+<section class="panel"><h2>Create Reservation</h2><form method="post" class="form-grid">
+<select name="customer_id" required><option value="">Select customer</option>{% for c in customers %}<option value="{{c.customer_id}}">{{c.full_name}}</option>{% endfor %}</select>
+<select name="table_id" required><option value="">Select table</option>{% for t in tables %}<option value="{{t.table_id}}">{{t.table_number}} — {{t.capacity}} seats</option>{% endfor %}</select>
+<input type="date" name="reservation_date" required><input type="time" name="reservation_time" required>
+<input type="number" name="guest_count" min="1" placeholder="Guests" required>
+<select name="status"><option>Confirmed</option><option>Pending</option></select>
+<button class="button">Reserve Table</button></form></section>
+<section class="panel"><h2>Reservation Records</h2><div class="table-wrap"><table><tr><th>ID</th><th>Customer</th><th>Table</th><th>Date</th><th>Time</th><th>Guests</th><th>Status</th></tr>
+{% for r in rows %}<tr><td>#{{r.reservation_id}}</td><td>{{r.full_name}}</td><td>{{r.table_number}}</td><td>{{r.reservation_date}}</td><td>{{r.reservation_time}}</td><td>{{r.guest_count}}</td><td><span class="status">{{r.status}}</span></td></tr>{% endfor %}
+</table></div></section>{% endblock %}

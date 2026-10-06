@@ -1,0 +1,6 @@
+{% extends 'base.html' %}{% block title %}Kitchen{% endblock %}
+{% block content %}<div class="page-head"><div><p class="eyebrow">KITCHEN PROCESSING</p><h1>Kitchen Tickets</h1></div></div>
+<section class="panel"><div class="table-wrap"><table><tr><th>Ticket</th><th>Order</th><th>Table</th><th>Created</th><th>Status</th><th>Update</th></tr>
+{% for r in rows %}<tr><td>#{{r.ticket_id}}</td><td>#{{r.order_id}}</td><td>{{r.table_number}}</td><td>{{r.created_at}}</td><td><span class="status">{{r.status}}</span></td>
+<td><form method="post" action="/kitchen/{{r.ticket_id}}" class="inline"><select name="status"><option>Pending</option><option>Preparing</option><option>Ready</option><option>Served</option><option>Cancelled</option></select><button class="button small">Update</button></form></td></tr>{% endfor %}
+</table></div></section>{% endblock %}

@@ -1,0 +1,7 @@
+{% extends 'base.html' %}{% block title %}Reports{% endblock %}
+{% block content %}<div class="page-head"><div><p class="eyebrow">SQL REPORTS</p><h1>Management Reports</h1></div></div>
+<div class="cards"><div class="card"><span>Collected Revenue</span><strong>₹{{'%.2f'|format(revenue)}}</strong><small>Successful payments</small></div></div>
+<section class="panel"><h2>Item Sales</h2><div class="table-wrap"><table><tr><th>Item</th><th>Quantity Sold</th><th>Sales Value</th></tr>{% for r in item_sales %}<tr><td>{{r.item_name}}</td><td>{{r.quantity_sold}}</td><td>₹{{'%.2f'|format(r.sales_value)}}</td></tr>{% endfor %}</table></div></section>
+<section class="panel"><h2>Waiter Performance</h2><div class="table-wrap"><table><tr><th>Waiter</th><th>Orders</th><th>Billed Value</th></tr>{% for r in waiter_sales %}<tr><td>{{r.waiter_name}}</td><td>{{r.orders_handled}}</td><td>₹{{'%.2f'|format(r.billed_value)}}</td></tr>{% endfor %}</table></div></section>
+<section class="panel"><h2>Reservation Status</h2><div class="table-wrap"><table><tr><th>Status</th><th>Count</th></tr>{% for r in reservations %}<tr><td>{{r.status}}</td><td>{{r.count}}</td></tr>{% endfor %}</table></div></section>
+{% endblock %}

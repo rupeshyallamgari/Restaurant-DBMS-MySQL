@@ -1,0 +1,11 @@
+{% extends 'base.html' %}{% block title %}Tables{% endblock %}
+{% block content %}<div class="page-head"><div><p class="eyebrow">TABLE MANAGEMENT</p><h1>Dining Tables</h1></div></div>
+<section class="panel"><h2>Add Restaurant Table</h2><form method="post" class="form-grid">
+<input name="table_number" placeholder="Table number e.g. T09" required>
+<select name="area_id" required>{% for a in areas %}<option value="{{a.area_id}}">{{a.area_name}}</option>{% endfor %}</select>
+<input type="number" name="capacity" min="1" placeholder="Capacity" required>
+<select name="status"><option>Available</option><option>Reserved</option><option>Occupied</option><option>Cleaning</option><option>Maintenance</option></select>
+<button class="button">Add Table</button></form></section>
+<section class="panel"><h2>Current Tables</h2><div class="table-wrap"><table><tr><th>Table</th><th>Area</th><th>Capacity</th><th>Status</th></tr>
+{% for r in rows %}<tr><td><b>{{r.table_number}}</b></td><td>{{r.area_name}}</td><td>{{r.capacity}}</td><td><span class="status">{{r.status}}</span></td></tr>{% endfor %}
+</table></div></section>{% endblock %}

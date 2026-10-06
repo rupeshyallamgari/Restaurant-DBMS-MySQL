@@ -1,0 +1,27 @@
+{% extends 'base.html' %}{% block title %}Dashboard{% endblock %}
+{% block content %}
+<section class="hero"><div><p class="eyebrow">DATABASE APPLICATION</p>
+<h1>Restaurant Operations Dashboard</h1>
+<p>Manage tables, reservations, customers, menu items, orders, kitchen processing, billing, discounts and payments from one database-connected prototype.</p>
+<div class="hero-actions"><a class="button light" href="/reservations">Create Reservation</a><a class="button ghost" href="/orders">New Food Order</a></div>
+</div><div class="hero-mark">R</div></section>
+<div class="cards">
+<div class="card"><span>Customers</span><strong>{{stats.customers}}</strong><small>Registered</small></div>
+<div class="card"><span>Tables</span><strong>{{stats.tables}}</strong><small>Restaurant tables</small></div>
+<div class="card"><span>Available</span><strong>{{stats.available}}</strong><small>Ready for seating</small></div>
+<div class="card"><span>Reservations</span><strong>{{stats.reservations}}</strong><small>Pending + confirmed</small></div>
+<div class="card"><span>Orders</span><strong>{{stats.orders}}</strong><small>Active records</small></div>
+<div class="card"><span>Revenue</span><strong>₹{{'%.2f'|format(stats.revenue)}}</strong><small>Successful payments</small></div>
+</div>
+<div class="quick-grid">
+<a href="/tables" class="quick-card"><b>Table Management</b><span>Manage dining areas, capacity and status →</span></a>
+<a href="/reservations" class="quick-card"><b>Reservations</b><span>Book tables without capacity conflicts →</span></a>
+<a href="/orders" class="quick-card"><b>Food Orders</b><span>Send orders to the kitchen →</span></a>
+<a href="/billing" class="quick-card"><b>Billing</b><span>Generate bills, discounts and payments →</span></a>
+</div>
+<section class="panel"><div class="panel-head"><div><h2>Recent Reservations</h2><p class="muted">Latest bookings from the live database.</p></div><a class="button" href="/reservations">Manage</a></div>
+<div class="table-wrap"><table><thead><tr><th>ID</th><th>Customer</th><th>Table</th><th>Date</th><th>Time</th><th>Guests</th><th>Status</th></tr></thead><tbody>
+{% for r in recent %}<tr><td>#{{r.reservation_id}}</td><td><b>{{r.full_name}}</b></td><td>{{r.table_number}}</td><td>{{r.reservation_date}}</td><td>{{r.reservation_time}}</td><td>{{r.guest_count}}</td><td><span class="status">{{r.status}}</span></td></tr>
+{% else %}<tr><td colspan="7" class="empty">No reservations yet.</td></tr>{% endfor %}
+</tbody></table></div></section>
+{% endblock %}
