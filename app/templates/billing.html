@@ -1,0 +1,10 @@
+{% extends 'base.html' %}{% block title %}Billing{% endblock %}
+{% block content %}<div class="page-head"><div><p class="eyebrow">BILLING & PAYMENTS</p><h1>Restaurant Billing</h1></div></div>
+<section class="panel"><h2>Generate Bill</h2><form method="post" class="form-grid">
+<select name="order_id" required><option value="">Select order</option>{% for o in orders %}<option value="{{o.order_id}}">Order #{{o.order_id}} — Table {{o.table_number}}</option>{% endfor %}</select>
+<select name="discount_id"><option value="">No discount</option>{% for d in discounts %}<option value="{{d.discount_id}}">{{d.discount_code}} — {{d.discount_percent}}%</option>{% endfor %}</select>
+<button class="button">Generate Bill</button></form></section>
+<section class="panel"><h2>Bills & Payments</h2><div class="table-wrap"><table><tr><th>Bill</th><th>Order</th><th>Subtotal</th><th>Discount</th><th>Total</th><th>Paid</th><th>Status</th><th>Payment</th></tr>
+{% for b in bills %}<tr><td>#{{b.bill_id}}</td><td>#{{b.order_id}}</td><td>₹{{'%.2f'|format(b.subtotal)}}</td><td>₹{{'%.2f'|format(b.discount_amount)}}</td><td><b>₹{{'%.2f'|format(b.total_amount)}}</b></td><td>₹{{'%.2f'|format(b.paid)}}</td><td>{{b.status}}</td>
+<td>{% if b.status != 'Paid' %}<form method="post" action="/payment/{{b.bill_id}}" class="inline"><input name="amount" type="number" step="0.01" min="0.01" placeholder="Amount" required><select name="payment_method"><option>UPI</option><option>Cash</option><option>Card</option><option>Bank Transfer</option></select><button class="button small">Pay</button></form>{% else %}Completed{% endif %}</td></tr>{% endfor %}
+</table></div></section>{% endblock %}

@@ -1,0 +1,6 @@
+{% extends 'base.html' %}{% block title %}Database Validation{% endblock %}
+{% block content %}<div class="page-head"><div><p class="eyebrow">DATABASE INTEGRITY</p><h1>Validation Checks</h1></div></div>
+<section class="panel"><p class="muted">All checks should return zero for a clean prototype database.</p>
+<div class="table-wrap"><table><tr><th>Check</th><th>Violations</th><th>Result</th></tr>
+{% for name,count in checks %}<tr><td>{{name}}</td><td>{{count}}</td><td>{% if count==0 %}<span class="good">PASS</span>{% else %}<span class="bad">CHECK</span>{% endif %}</td></tr>{% endfor %}
+</table></div></section>{% endblock %}

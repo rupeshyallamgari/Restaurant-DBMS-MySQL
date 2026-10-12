@@ -1,0 +1,9 @@
+{% extends 'base.html' %}{% block title %}Customers{% endblock %}
+{% block content %}<div class="page-head"><div><p class="eyebrow">CUSTOMER MANAGEMENT</p><h1>Customers</h1></div></div>
+<section class="panel"><h2>Add Customer</h2><form method="post" class="form-grid">
+<input name="full_name" placeholder="Full name" required><input name="phone" placeholder="Phone" required>
+<input name="email" type="email" placeholder="Email"><input name="address" placeholder="Address">
+<button class="button">Add Customer</button></form></section>
+<section class="panel"><h2>Customer Records</h2><div class="table-wrap"><table><tr><th>ID</th><th>Name</th><th>Phone</th><th>Email</th><th>Address</th></tr>
+{% for r in rows %}<tr><td>{{r.customer_id}}</td><td><b>{{r.full_name}}</b></td><td>{{r.phone}}</td><td>{{r.email or '-'}}</td><td>{{r.address or '-'}}</td></tr>{% endfor %}
+</table></div></section>{% endblock %}

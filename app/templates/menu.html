@@ -1,0 +1,11 @@
+{% extends 'base.html' %}{% block title %}Menu{% endblock %}
+{% block content %}<div class="page-head"><div><p class="eyebrow">MENU MANAGEMENT</p><h1>Food Menu</h1></div></div>
+<section class="panel"><h2>Add Menu Item</h2><form method="post" class="form-grid">
+<select name="category_id" required>{% for c in categories %}<option value="{{c.category_id}}">{{c.category_name}}</option>{% endfor %}</select>
+<input name="item_name" placeholder="Item name" required><input name="description" placeholder="Description">
+<input type="number" name="price" min="1" step="0.01" placeholder="Price" required>
+<select name="availability"><option>Available</option><option>Unavailable</option></select>
+<button class="button">Add Item</button></form></section>
+<section class="panel"><h2>Menu Items</h2><div class="table-wrap"><table><tr><th>Item</th><th>Category</th><th>Description</th><th>Price</th><th>Availability</th></tr>
+{% for r in rows %}<tr><td><b>{{r.item_name}}</b></td><td>{{r.category_name}}</td><td>{{r.description or '-'}}</td><td>₹{{'%.2f'|format(r.price)}}</td><td><span class="status">{{r.availability}}</span></td></tr>{% endfor %}
+</table></div></section>{% endblock %}
